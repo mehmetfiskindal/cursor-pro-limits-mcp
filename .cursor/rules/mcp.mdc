@@ -1,0 +1,30 @@
+---
+alwaysApply: true
+---
+
+# MCP (Model Context Protocol) Development Rules
+
+## TypeScript Standards
+- Use strict TypeScript configuration with no `any` types
+- Prefer explicit return types for functions
+- Use proper interfaces and type definitions
+- Follow ESLint and Prettier configurations
+
+## MCP Server Development
+- Implement proper MCP server structure with tools and handlers
+- Use the @modelcontextprotocol/sdk for server implementation
+- Provide comprehensive error handling and validation
+- Include proper TypeScript types for all MCP tools
+
+## Code Quality
+- No `any` types allowed - use proper TypeScript typing
+- Follow ESLint rules strictly
+- Use Prettier for consistent formatting
+- Include comprehensive JSDoc comments
+- Write clean, maintainable code
+
+## Project Structure
+- Keep source code in `src/` directory
+- Use proper module exports and imports
+- Include example usage files
+- Maintain comprehensive documentation
