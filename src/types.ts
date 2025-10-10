@@ -15,15 +15,19 @@ export interface CursorProLimits {
   lastUpdated: Date;
 }
 
+export type SubscriptionTier = 'pro' | 'pro-plus' | 'ultra';
+
 export interface CursorProQuotas {
-  /** Maximum Sonnet 4.5 requests per day */
+  /** Maximum Sonnet 4.5 requests per month */
   maxSonnet45Requests: number;
-  /** Maximum Gemini requests per day */
+  /** Maximum Gemini requests per month */
   maxGeminiRequests: number;
-  /** Maximum GPT-5 requests per day */
+  /** Maximum GPT-5 requests per month */
   maxGpt5Requests: number;
-  /** Total maximum requests per day */
+  /** Total maximum requests per month */
   maxTotalRequests: number;
+  /** Subscription tier */
+  tier: SubscriptionTier;
 }
 
 export interface UsageStats {

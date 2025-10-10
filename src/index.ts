@@ -13,6 +13,7 @@ import {
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { CursorLimitsMonitor } from './cursorLimitsMonitor.js';
+import { SubscriptionTier } from './types.js';
 
 class CursorProLimitsMCPServer {
   private server: Server;
@@ -93,6 +94,29 @@ class CursorProLimitsMCPServer {
               },
             },
           },
+          {
+            name: 'set_subscription_tier',
+            description: 'Set the subscription tier (pro, pro-plus, ultra)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                tier: {
+                  type: 'string',
+                  enum: ['pro', 'pro-plus', 'ultra'],
+                  description: 'Subscription tier',
+                },
+              },
+              required: ['tier'],
+            },
+          },
+          {
+            name: 'get_subscription_info',
+            description: 'Get current subscription tier and limits',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
+          },
         ] as Tool[],
       };
     });
@@ -124,6 +148,14 @@ class CursorProLimitsMCPServer {
               }
             );
 
+          case 'set_subscription_tier':
+            return await this.handleSetSubscriptionTier(
+              args as { tier: string }
+            );
+
+          case 'get_subscription_info':
+            return await this.handleGetSubscriptionInfo();
+
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
@@ -149,13 +181,15 @@ class CursorProLimitsMCPServer {
     const content = `
 # Cursor Pro Usage Statistics
 
-## Current Usage
+## Subscription Tier: ${stats.quotas.tier.toUpperCase()}
+
+## Current Usage (Monthly)
 - **Sonnet 4.5**: ${stats.limits.sonnet45Requests}/${stats.quotas.maxSonnet45Requests} (${stats.usagePercentages.sonnet45.toFixed(1)}%)
 - **Gemini**: ${stats.limits.geminiRequests}/${stats.quotas.maxGeminiRequests} (${stats.usagePercentages.gemini.toFixed(1)}%)
 - **GPT-5**: ${stats.limits.gpt5Requests}/${stats.quotas.maxGpt5Requests} (${stats.usagePercentages.gpt5.toFixed(1)}%)
 - **Total**: ${stats.limits.totalRequests}/${stats.quotas.maxTotalRequests} (${stats.usagePercentages.total.toFixed(1)}%)
 
-## Remaining Requests
+## Remaining Requests (This Month)
 - **Sonnet 4.5**: ${stats.remaining.sonnet45}
 - **Gemini**: ${stats.remaining.gemini}
 - **GPT-5**: ${stats.remaining.gpt5}
@@ -301,6 +335,81 @@ ${alerts
         {
           type: 'text',
           text: `✅ Usage statistics updated successfully.`,
+        },
+      ],
+    };
+  }
+
+  private async handleSetSubscriptionTier(args: { tier: string }) {
+    const { tier } = args;
+    
+    if (!['pro', 'pro-plus', 'ultra'].includes(tier)) {
+      throw new Error('Invalid tier. Must be one of: pro, pro-plus, ultra');
+    }
+
+    this.monitor.updateTier(tier as SubscriptionTier);
+
+    const stats = this.monitor.getUsageStats();
+    const content = `
+# Subscription Tier Updated
+
+## New Tier: ${tier.toUpperCase()}
+
+## Monthly Limits
+- **Sonnet 4.5**: ${stats.quotas.maxSonnet45Requests} requests/month
+- **Gemini**: ${stats.quotas.maxGeminiRequests} requests/month
+- **GPT-5**: ${stats.quotas.maxGpt5Requests} requests/month
+- **Total**: ${stats.quotas.maxTotalRequests} requests/month
+
+## Current Usage
+- **Sonnet 4.5**: ${stats.limits.sonnet45Requests}/${stats.quotas.maxSonnet45Requests} (${stats.usagePercentages.sonnet45.toFixed(1)}%)
+- **Gemini**: ${stats.limits.geminiRequests}/${stats.quotas.maxGeminiRequests} (${stats.usagePercentages.gemini.toFixed(1)}%)
+- **GPT-5**: ${stats.limits.gpt5Requests}/${stats.quotas.maxGpt5Requests} (${stats.usagePercentages.gpt5.toFixed(1)}%)
+- **Total**: ${stats.limits.totalRequests}/${stats.quotas.maxTotalRequests} (${stats.usagePercentages.total.toFixed(1)}%)
+    `.trim();
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: content,
+        },
+      ],
+    };
+  }
+
+  private async handleGetSubscriptionInfo() {
+    const tier = this.monitor.getCurrentTier();
+    const stats = this.monitor.getUsageStats();
+    
+    const content = `
+# Subscription Information
+
+## Current Tier: ${tier.toUpperCase()}
+
+## Monthly Limits
+- **Sonnet 4.5**: ${stats.quotas.maxSonnet45Requests} requests/month
+- **Gemini**: ${stats.quotas.maxGeminiRequests} requests/month
+- **GPT-5**: ${stats.quotas.maxGpt5Requests} requests/month
+- **Total**: ${stats.quotas.maxTotalRequests} requests/month
+
+## Current Usage
+- **Sonnet 4.5**: ${stats.limits.sonnet45Requests}/${stats.quotas.maxSonnet45Requests} (${stats.usagePercentages.sonnet45.toFixed(1)}%)
+- **Gemini**: ${stats.limits.geminiRequests}/${stats.quotas.maxGeminiRequests} (${stats.usagePercentages.gemini.toFixed(1)}%)
+- **GPT-5**: ${stats.limits.gpt5Requests}/${stats.quotas.maxGpt5Requests} (${stats.usagePercentages.gpt5.toFixed(1)}%)
+- **Total**: ${stats.limits.totalRequests}/${stats.quotas.maxTotalRequests} (${stats.usagePercentages.total.toFixed(1)}%)
+
+## Available Tiers
+- **Pro**: 225 Sonnet 4.5, 550 Gemini, 500 GPT-5 (1,275 total)
+- **Pro+**: 675 Sonnet 4.5, 1,650 Gemini, 1,500 GPT-5 (3,825 total)
+- **Ultra**: 4,500 Sonnet 4.5, 11,000 Gemini, 10,000 GPT-5 (25,500 total)
+    `.trim();
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: content,
         },
       ],
     };

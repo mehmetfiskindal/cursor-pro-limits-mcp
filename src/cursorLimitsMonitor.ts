@@ -8,14 +8,15 @@ import {
   CursorProQuotas,
   UsageStats,
   ServiceUsage,
+  SubscriptionTier,
 } from './types';
 
 export class CursorLimitsMonitor {
   private limits: CursorProLimits;
   private quotas: CursorProQuotas;
-  private updateCallbacks: Array<(stats: UsageStats) => void> = []; // eslint-disable-line no-unused-vars
+  private updateCallbacks: Array<(_stats: UsageStats) => void> = [];
 
-  constructor() {
+  constructor(tier: SubscriptionTier = 'pro') {
     this.limits = {
       sonnet45Requests: 0,
       geminiRequests: 0,
@@ -24,12 +25,62 @@ export class CursorLimitsMonitor {
       lastUpdated: new Date(),
     };
 
-    this.quotas = {
-      maxSonnet45Requests: 225,
-      maxGeminiRequests: 550,
-      maxGpt5Requests: 500,
-      maxTotalRequests: 1275, // Sum of all services
-    };
+    this.quotas = this.getQuotasForTier(tier);
+  }
+
+  /**
+   * Get quotas for a specific subscription tier
+   */
+  private getQuotasForTier(tier: SubscriptionTier): CursorProQuotas {
+    switch (tier) {
+      case 'pro':
+        return {
+          maxSonnet45Requests: 225,
+          maxGeminiRequests: 550,
+          maxGpt5Requests: 500,
+          maxTotalRequests: 1275,
+          tier: 'pro',
+        };
+      case 'pro-plus':
+        return {
+          maxSonnet45Requests: 675,
+          maxGeminiRequests: 1650,
+          maxGpt5Requests: 1500,
+          maxTotalRequests: 3825,
+          tier: 'pro-plus',
+        };
+      case 'ultra':
+        return {
+          maxSonnet45Requests: 4500,
+          maxGeminiRequests: 11000,
+          maxGpt5Requests: 10000,
+          maxTotalRequests: 25500,
+          tier: 'ultra',
+        };
+      default:
+        return {
+          maxSonnet45Requests: 225,
+          maxGeminiRequests: 550,
+          maxGpt5Requests: 500,
+          maxTotalRequests: 1275,
+          tier: 'pro',
+        };
+    }
+  }
+
+  /**
+   * Update subscription tier
+   */
+  public updateTier(tier: SubscriptionTier): void {
+    this.quotas = this.getQuotasForTier(tier);
+    this.notifyCallbacks();
+  }
+
+  /**
+   * Get current subscription tier
+   */
+  public getCurrentTier(): SubscriptionTier {
+    return this.quotas.tier;
   }
 
   /**
@@ -134,16 +185,14 @@ export class CursorLimitsMonitor {
   /**
    * Add callback for usage updates
    */
-  public onUpdate(callback: (stats: UsageStats) => void): void {
-    // eslint-disable-line no-unused-vars
+  public onUpdate(callback: (_stats: UsageStats) => void): void {
     this.updateCallbacks.push(callback);
   }
 
   /**
    * Remove update callback
    */
-  public removeUpdateCallback(callback: (stats: UsageStats) => void): void {
-    // eslint-disable-line no-unused-vars
+  public removeUpdateCallback(callback: (_stats: UsageStats) => void): void {
     const index = this.updateCallbacks.indexOf(callback);
     if (index > -1) {
       this.updateCallbacks.splice(index, 1);

@@ -10,13 +10,27 @@ A Model Context Protocol (MCP) server for monitoring Cursor Pro usage limits and
 - 🔧 **Easy Integration**: Works with any MCP-compatible client
 - 🎯 **TypeScript**: Fully typed with strict TypeScript configuration
 
-## Cursor Pro Limits
+## Cursor Pro Limits (Monthly)
 
 Based on Cursor Pro subscription limits:
-- **Sonnet 4.5**: ~225 requests per day
-- **Gemini**: ~550 requests per day  
-- **GPT-5**: ~500 requests per day
-- **Total**: ~1,275 requests per day
+
+### Pro Tier
+- **Sonnet 4.5**: 225 requests/month
+- **Gemini**: 550 requests/month  
+- **GPT-5**: 500 requests/month
+- **Total**: 1,275 requests/month
+
+### Pro+ Tier
+- **Sonnet 4.5**: 675 requests/month
+- **Gemini**: 1,650 requests/month  
+- **GPT-5**: 1,500 requests/month
+- **Total**: 3,825 requests/month
+
+### Ultra Tier
+- **Sonnet 4.5**: 4,500 requests/month
+- **Gemini**: 11,000 requests/month  
+- **GPT-5**: 10,000 requests/month
+- **Total**: 25,500 requests/month
 
 ## Installation
 
@@ -68,12 +82,22 @@ Update usage statistics (for testing or manual updates).
 - `gpt5Requests` (optional): Number of GPT-5 requests
 - `totalRequests` (optional): Total number of requests
 
+#### `set_subscription_tier`
+Set the subscription tier (pro, pro-plus, ultra).
+
+**Parameters:**
+- `tier`: Subscription tier ("pro", "pro-plus", or "ultra")
+
+#### `get_subscription_info`
+Get current subscription tier and limits information.
+
 ### Programmatic Usage
 
 ```typescript
 import { CursorLimitsMonitor } from 'cursor-pro-limits-mcp';
 
-const monitor = new CursorLimitsMonitor();
+// Create monitor for Pro tier (default)
+const monitor = new CursorLimitsMonitor('pro');
 
 // Get current usage stats
 const stats = monitor.getUsageStats();
@@ -92,6 +116,10 @@ monitor.updateLimits({
   gpt5Requests: 200,
   totalRequests: 650
 });
+
+// Switch to Pro+ tier for higher limits
+monitor.updateTier('pro-plus');
+console.log(`Switched to ${monitor.getCurrentTier()} tier`);
 ```
 
 ## Development

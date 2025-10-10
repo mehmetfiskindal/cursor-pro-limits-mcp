@@ -5,8 +5,8 @@
 
 import { CursorLimitsMonitor } from './cursorLimitsMonitor.js';
 
-// Create a monitor instance
-const monitor = new CursorLimitsMonitor();
+// Create a monitor instance for Pro tier
+const monitor = new CursorLimitsMonitor('pro');
 
 // Example: Simulate some usage
 console.log('=== Cursor Pro Limits Monitor Example ===\n');
@@ -85,14 +85,22 @@ monitor.updateLimits({
   totalRequests: 1150, // High total usage
 });
 
-// Check alerts again
+// Demonstrate tier switching
+console.log('\n=== Switching to Pro+ Tier ===');
+monitor.updateTier('pro-plus');
+const newStats = monitor.getUsageStats();
+console.log(`Switched to ${newStats.quotas.tier.toUpperCase()} tier`);
+console.log(`New limits: ${newStats.quotas.maxTotalRequests} total requests/month`);
+
+// Check alerts with new tier
 const newAlerts = monitor.checkAlerts();
 if (newAlerts.length > 0) {
-  console.log('\n⚠️  New Alerts:');
-  newAlerts.forEach(alert => {
+  console.log('\n⚠️  Alerts with Pro+ tier:');
+  newAlerts.forEach((alert) => {
     const status = alert.isCritical ? 'CRITICAL' : 'WARNING';
-    console.log(
-      `- ${alert.service.toUpperCase()}: ${status} (${alert.percentage.toFixed(1)}% used)`
-    );
+    console.log(`- ${alert.service.toUpperCase()}: ${status} (${alert.percentage.toFixed(1)}% used)`);
   });
+} else {
+  console.log('\n✅ No alerts with Pro+ tier - much higher limits!');
 }
+
