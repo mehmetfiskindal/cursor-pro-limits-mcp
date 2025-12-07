@@ -2,6 +2,10 @@
 
 A Model Context Protocol (MCP) server for monitoring Cursor Pro usage limits and API quotas. This server helps you track your daily usage across different AI services and stay within your Cursor Pro limits.
 
+<a href="https://glama.ai/mcp/servers/@mehmetfiskindal/cursor-pro-limits-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@mehmetfiskindal/cursor-pro-limits-mcp/badge" alt="Cursor Pro Limits Server MCP server" />
+</a>
+
 ## Features
 
 - 📊 **Real-time Usage Monitoring**: Track Sonnet 4.5, Gemini, and GPT-5 request usage
